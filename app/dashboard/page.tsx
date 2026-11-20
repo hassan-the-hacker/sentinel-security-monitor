@@ -337,12 +337,17 @@ export default function DashboardPage() {
                   <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                   <YAxis domain={[0, 100]} stroke="#64748b" fontSize={11} tickLine={false} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#0b0f19",
-                      borderColor: "#1e293b",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                      color: "#f1f5f9",
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0];
+                        return (
+                          <div className="bg-slate-900/95 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-xl text-xs">
+                            <p className="font-mono text-slate-300 text-[11px] mb-0.5">{data.payload.name}</p>
+                            <p className="font-semibold text-emerald-400">Score: {data.value} / 100</p>
+                          </div>
+                        );
+                      }
+                      return null;
                     }}
                   />
                   <Area
@@ -384,12 +389,21 @@ export default function DashboardPage() {
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#0b0f19",
-                        borderColor: "#1e293b",
-                        borderRadius: "8px",
-                        fontSize: "12px",
-                        color: "#f1f5f9",
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0];
+                          return (
+                            <div className="bg-slate-900/95 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-xl text-xs flex items-center gap-2">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: (data.payload as any)?.color || data.color }}
+                              />
+                              <span className="font-medium text-slate-200">{data.name}:</span>
+                              <span className="font-bold text-white">{data.value}</span>
+                            </div>
+                          );
+                        }
+                        return null;
                       }}
                     />
                   </PieChart>

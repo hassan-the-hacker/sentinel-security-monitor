@@ -118,10 +118,21 @@ function ScannerContent() {
         addLog(`Phase 4/4: Querying SPF, DMARC, CAA records and validating DNSSEC...`, "info");
       }, 1700);
 
+      let timeoutMs = 8000;
+      try {
+        const saved = localStorage.getItem("sentinel_scanner_settings");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.scanTimeout) timeoutMs = Number(parsed.scanTimeout);
+        }
+      } catch {
+        // default 8000ms
+      }
+
       const response = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain: target, authorized: true }),
+        body: JSON.stringify({ domain: target, authorized: true, timeoutMs }),
       });
 
       clearTimeout(stepTimer1);
@@ -291,15 +302,13 @@ function ScannerContent() {
                   : "bg-slate-950/40 border-slate-800/80 text-slate-500"
                 }`}
             >
-              <div className="flex items-center justify-between mb-1.5 text-xs">
+              <div className="flex items-center justify-between mb-1.5 text-xs min-h-[16px]">
                 <span className="text-slate-500 font-medium">Step {st.num}</span>
                 {isComplete ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 ) : isCurrent ? (
                   <Clock className="w-4 h-4 text-slate-300 animate-spin" />
-                ) : (
-                  <span className="text-slate-600">—</span>
-                )}
+                ) : null}
               </div>
               <div className="font-semibold text-xs text-slate-200 truncate">{st.title}</div>
               <div className="text-[11px] text-slate-400 mt-0.5 truncate">{st.desc}</div>

@@ -38,34 +38,53 @@ export async function analyzeDNSSecurity(domain: string): Promise<{
     // Optional
   }
 
-  // 4. Resolve CAA
+  // Build hierarchy for domain traversal (RFC 6844 CAA, RFC 7489 DMARC, RFC 7208 SPF)
+  const domainParts = domain.split(".");
+  const domainsToCheck: string[] = [domain];
+  const parts = [...domainParts];
+  while (parts.length > 2) {
+    parts.shift();
+    domainsToCheck.push(parts.join("."));
+  }
+
+  // 4. Resolve CAA (with RFC 6844 tree traversal)
   try {
-    const caa = await dns.resolveCaa(domain).catch(() => []);
-    for (const record of caa) {
-      if (record.issue) caaRecords.push(`issue: ${record.issue}`);
-      if (record.issuewild) caaRecords.push(`issuewild: ${record.issuewild}`);
-      if (record.iodef) caaRecords.push(`iodef: ${record.iodef}`);
+    for (const d of domainsToCheck) {
+      const caa = await dns.resolveCaa(d).catch(() => []);
+      for (const record of caa) {
+        if (record.issue) caaRecords.push(`issue: ${record.issue}`);
+        if (record.issuewild) caaRecords.push(`issuewild: ${record.issuewild}`);
+        if (record.iodef) caaRecords.push(`iodef: ${record.iodef}`);
+      }
+      if (caaRecords.length > 0) break;
     }
   } catch {
     // CAA not configured
   }
 
-  // 5. SPF Record Analysis
+  // 5. SPF Record Analysis (with parent domain inheritance)
   let spfRecord: string | null = null;
   let spfStatus: "pass" | "fail" | "warning" = "fail";
   let spfQualifier = "~all";
+  let spfInheritedFrom: string | null = null;
 
-  try {
-    const txtRecords = await dns.resolveTxt(domain).catch(() => []);
-    for (const chunkGroup of txtRecords) {
-      const fullTxt = chunkGroup.join("");
-      if (fullTxt.toLowerCase().startsWith("v=spf1")) {
-        spfRecord = fullTxt;
-        break;
+  for (const d of domainsToCheck) {
+    try {
+      const txtRecords = await dns.resolveTxt(d).catch(() => []);
+      for (const chunkGroup of txtRecords) {
+        const fullTxt = chunkGroup.join("");
+        if (fullTxt.toLowerCase().startsWith("v=spf1")) {
+          spfRecord = fullTxt;
+          if (d !== domain) {
+            spfInheritedFrom = d;
+          }
+          break;
+        }
       }
+      if (spfRecord) break;
+    } catch {
+      // No TXT records
     }
-  } catch {
-    // No TXT records
   }
 
   if (spfRecord) {
@@ -76,13 +95,17 @@ export async function analyzeDNSSecurity(domain: string): Promise<{
         id: "dns-spf-pass",
         category: "dns",
         checkName: "SPF Record",
-        title: "Strict SPF Record Active (-all)",
+        title: spfInheritedFrom
+          ? `Strict SPF Active (Inherited from ${spfInheritedFrom} -all)`
+          : "Strict SPF Record Active (-all)",
         status: "pass",
         severity: "safe",
         scoreImpact: 0,
-        description: "Sender Policy Framework strictly authorizes designated mail servers and blocks unauthorized senders with hard fail (-all).",
+        description: spfInheritedFrom
+          ? `Sender Policy Framework is strictly enforced via apex domain (${spfInheritedFrom}) with hard fail (-all). Subdomain does not designate external mail senders.`
+          : "Sender Policy Framework strictly authorizes designated mail servers and blocks unauthorized senders with hard fail (-all).",
         recommendation: "Maintain designated SPF IP blocks as mail infrastructure evolves.",
-        rawDetails: { spf: spfRecord },
+        rawDetails: { spf: spfRecord, inheritedFrom: spfInheritedFrom },
       });
     } else if (spfRecord.includes("~all")) {
       spfStatus = "pass";
@@ -91,13 +114,17 @@ export async function analyzeDNSSecurity(domain: string): Promise<{
         id: "dns-spf-soft",
         category: "dns",
         checkName: "SPF Record",
-        title: "SPF Record Active (~all)",
+        title: spfInheritedFrom
+          ? `SPF Active (Inherited from ${spfInheritedFrom} ~all)`
+          : "SPF Record Active (~all)",
         status: "pass",
         severity: "info",
         scoreImpact: 0,
-        description: "SPF record configured with soft fail (~all). Acceptable when combined with strict DMARC.",
+        description: spfInheritedFrom
+          ? `SPF policy enforced via apex domain (${spfInheritedFrom}) with soft fail (~all). Acceptable when combined with strict DMARC.`
+          : "SPF record configured with soft fail (~all). Acceptable when combined with strict DMARC.",
         recommendation: "Consider moving towards strict '-all' once all legitimate email sources are confirmed.",
-        rawDetails: { spf: spfRecord },
+        rawDetails: { spf: spfRecord, inheritedFrom: spfInheritedFrom },
       });
     } else if (spfRecord.includes("+all")) {
       spfStatus = "warning";
@@ -143,58 +170,76 @@ export async function analyzeDNSSecurity(domain: string): Promise<{
     });
   }
 
-  // 6. DMARC Record Analysis (_dmarc.<domain>)
+  // 6. DMARC Record Analysis (_dmarc.<domain>) with RFC 7489 Organizational Domain fallback
   let dmarcRecord: string | null = null;
   let dmarcPolicy: "reject" | "quarantine" | "none" | "unknown" = "unknown";
   let dmarcStatus: "pass" | "fail" | "warning" = "fail";
+  let dmarcInheritedFrom: string | null = null;
 
-  try {
-    const dmarcHost = `_dmarc.${domain}`;
-    const dmarcTxt = await dns.resolveTxt(dmarcHost).catch(() => []);
-    for (const chunkGroup of dmarcTxt) {
-      const fullTxt = chunkGroup.join("");
-      if (fullTxt.toLowerCase().startsWith("v=dmarc1")) {
-        dmarcRecord = fullTxt;
-        break;
+  for (const d of domainsToCheck) {
+    try {
+      const dmarcHost = `_dmarc.${d}`;
+      const dmarcTxt = await dns.resolveTxt(dmarcHost).catch(() => []);
+      for (const chunkGroup of dmarcTxt) {
+        const fullTxt = chunkGroup.join("");
+        if (fullTxt.toLowerCase().startsWith("v=dmarc1")) {
+          dmarcRecord = fullTxt;
+          if (d !== domain) {
+            dmarcInheritedFrom = d;
+          }
+          break;
+        }
       }
+      if (dmarcRecord) break;
+    } catch {
+      // Continue to next domain in hierarchy
     }
-  } catch {
-    // DMARC not found
   }
 
   if (dmarcRecord) {
     const policyMatch = dmarcRecord.match(/p=(reject|quarantine|none)/i);
+    const spMatch = dmarcRecord.match(/sp=(reject|quarantine|none)/i);
     if (policyMatch) {
       dmarcPolicy = policyMatch[1].toLowerCase() as "reject" | "quarantine" | "none";
     }
+    // Subdomain policy tag (sp=) takes precedence for subdomains per RFC 7489
+    const effectivePolicy = (dmarcInheritedFrom && spMatch)
+      ? (spMatch[1].toLowerCase() as "reject" | "quarantine" | "none")
+      : dmarcPolicy;
 
-    if (dmarcPolicy === "reject") {
+    if (effectivePolicy === "reject") {
       dmarcStatus = "pass";
       findings.push({
         id: "dns-dmarc-reject",
         category: "dns",
         checkName: "DMARC Policy",
-        title: "Robust DMARC Enforcement (p=reject)",
+        title: dmarcInheritedFrom
+          ? `Robust DMARC Subdomain Policy Enforced (sp=reject via ${dmarcInheritedFrom})`
+          : "Robust DMARC Enforcement (p=reject)",
         status: "pass",
         severity: "safe",
         scoreImpact: 0,
-        description: "DMARC policy set to 'reject'. Unauthorized spoofed emails are rejected at recipient mail gateways.",
+        description: dmarcInheritedFrom
+          ? `Subdomain email spoofing is strictly rejected by apex domain (${dmarcInheritedFrom}) DMARC policy (RFC 7489 Section 6.6.3).`
+          : "DMARC policy set to 'reject'. Unauthorized spoofed emails are rejected at recipient mail gateways.",
         recommendation: "Monitor DMARC aggregate reports (rua) for delivery health.",
-        rawDetails: { dmarc: dmarcRecord },
+        rawDetails: { dmarc: dmarcRecord, effectivePolicy, inheritedFrom: dmarcInheritedFrom },
       });
-    } else if (dmarcPolicy === "quarantine") {
+    } else if (effectivePolicy === "quarantine") {
       dmarcStatus = "pass";
       findings.push({
         id: "dns-dmarc-quarantine",
         category: "dns",
         checkName: "DMARC Policy",
-        title: "DMARC Quarantine Policy Active (p=quarantine)",
+        title: dmarcInheritedFrom
+          ? `DMARC Quarantine Policy Active (sp=quarantine via ${dmarcInheritedFrom})`
+          : "DMARC Quarantine Policy Active (p=quarantine)",
         status: "pass",
         severity: "info",
         scoreImpact: 0,
         description: "DMARC policy instructs receivers to route suspicious emails to spam/quarantine.",
         recommendation: "Progressively move towards 'p=reject' once legitimate traffic aligns with SPF/DKIM.",
-        rawDetails: { dmarc: dmarcRecord },
+        rawDetails: { dmarc: dmarcRecord, effectivePolicy, inheritedFrom: dmarcInheritedFrom },
       });
     } else {
       dmarcStatus = "warning";

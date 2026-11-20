@@ -24,28 +24,28 @@ export const Badge: React.FC<BadgeProps> = ({
   if (severity) {
     switch (severity) {
       case "critical":
-        badgeStyles = "bg-red-500/15 text-red-400 border-red-500/30";
-        dotStyles = "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]";
+        badgeStyles = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+        dotStyles = "bg-rose-400";
         break;
       case "high":
-        badgeStyles = "bg-orange-500/15 text-orange-400 border-orange-500/30";
-        dotStyles = "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]";
+        badgeStyles = "bg-orange-500/10 text-orange-400 border-orange-500/20";
+        dotStyles = "bg-orange-400";
         break;
       case "medium":
-        badgeStyles = "bg-amber-500/15 text-amber-400 border-amber-500/30";
-        dotStyles = "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]";
+        badgeStyles = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+        dotStyles = "bg-amber-400";
         break;
       case "low":
-        badgeStyles = "bg-blue-500/15 text-blue-400 border-blue-500/30";
-        dotStyles = "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]";
+        badgeStyles = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+        dotStyles = "bg-blue-400";
         break;
       case "safe":
-        badgeStyles = "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
-        dotStyles = "bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]";
+        badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        dotStyles = "bg-emerald-400";
         break;
       case "info":
       default:
-        badgeStyles = "bg-slate-500/15 text-slate-400 border-slate-500/30";
+        badgeStyles = "bg-slate-500/10 text-slate-400 border-slate-500/20";
         dotStyles = "bg-slate-400";
         break;
     }
@@ -53,25 +53,25 @@ export const Badge: React.FC<BadgeProps> = ({
     switch (grade) {
       case "A+":
       case "A":
-        badgeStyles = "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
+        badgeStyles = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
         dotStyles = "bg-emerald-400";
         break;
       case "B":
-        badgeStyles = "bg-cyan-500/15 text-cyan-400 border-cyan-500/30";
-        dotStyles = "bg-cyan-400";
+        badgeStyles = "bg-blue-500/10 text-blue-400 border-blue-500/20";
+        dotStyles = "bg-blue-400";
         break;
       case "C":
-        badgeStyles = "bg-amber-500/15 text-amber-400 border-amber-500/30";
+        badgeStyles = "bg-amber-500/10 text-amber-400 border-amber-500/20";
         dotStyles = "bg-amber-400";
         break;
       case "D":
-        badgeStyles = "bg-orange-500/15 text-orange-400 border-orange-500/30";
+        badgeStyles = "bg-orange-500/10 text-orange-400 border-orange-500/20";
         dotStyles = "bg-orange-400";
         break;
       case "F":
       default:
-        badgeStyles = "bg-red-500/15 text-red-400 border-red-500/30";
-        dotStyles = "bg-red-400";
+        badgeStyles = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+        dotStyles = "bg-rose-400";
         break;
     }
   }

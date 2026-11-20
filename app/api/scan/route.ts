@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { domain, authorized } = body;
+    const { domain, authorized, timeoutMs } = body;
 
     if (!domain || typeof domain !== "string") {
       return NextResponse.json(
@@ -27,8 +27,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Execute scan
-    const scanResult = await executeSecurityScan(domain);
+    // Execute scan with optional user-configured timeout
+    const timeout =
+      typeof timeoutMs === "number" && timeoutMs >= 1000 && timeoutMs <= 30000
+        ? timeoutMs
+        : undefined;
+    const scanResult = await executeSecurityScan(domain, { timeoutMs: timeout });
 
     // Attempt to persist to Supabase if user is authenticated and Supabase is configured
     try {

@@ -18,6 +18,14 @@ import { Badge } from "@/components/ui/Badge";
 import { CompleteScanResult } from "@/types/scanner";
 import { generateSecurityReportPdf } from "@/services/pdf-report-generator";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
+
+function getScoreTextColor(score: number, max: number) {
+  const ratio = max > 0 ? score / max : 0;
+  if (ratio >= 0.8) return "text-emerald-400";
+  if (ratio >= 0.5) return "text-amber-400";
+  return "text-rose-400";
+}
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -118,41 +126,41 @@ export default function ReportsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {scans.map((scan) => (
-            <Card key={scan.id} glow="none" className="p-5 flex flex-col justify-between space-y-4">
+            <Card key={scan.id} glow="none" className="p-5 flex flex-col justify-between space-y-4 border-slate-800/80 bg-slate-900/60 hover:border-slate-700/80 transition-colors">
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <Badge grade={scan.grade} dot>
-                    GRADE {scan.grade} ({scan.overallScore}/100)
+                    Grade {scan.grade} · {scan.overallScore}/100
                   </Badge>
-                  <span className="text-[11px] font-mono text-slate-400">
+                  <span className="text-xs text-slate-400">
                     {new Date(scan.scannedAt).toLocaleDateString()}
                   </span>
                 </div>
 
-                <h3 className="text-base font-bold text-slate-100 font-mono tracking-tight truncate">
+                <h3 className="text-base font-semibold text-slate-100 tracking-tight truncate">
                   {scan.domain}
                 </h3>
                 <p className="text-xs text-slate-400 mt-1 line-clamp-2">
                   {scan.categories.ssl.summary}
                 </p>
 
-                <div className="mt-4 pt-3 border-t border-slate-800 grid grid-cols-3 gap-2 text-center font-mono text-xs">
-                  <div className="p-2 rounded bg-navy-950/60 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">SSL</div>
-                    <div className="font-bold text-emerald-400 mt-0.5">
-                      {scan.categories.ssl.score}/25
+                <div className="mt-4 pt-3 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">SSL</div>
+                    <div className={cn("font-semibold text-xs mt-1", getScoreTextColor(scan.categories.ssl.score, scan.categories.ssl.maxScore))}>
+                      {scan.categories.ssl.score}<span className="text-slate-500 font-normal">/{scan.categories.ssl.maxScore}</span>
                     </div>
                   </div>
-                  <div className="p-2 rounded bg-navy-950/60 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">HEADERS</div>
-                    <div className="font-bold text-cyan-400 mt-0.5">
-                      {scan.categories.headers.score}/30
+                  <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Headers</div>
+                    <div className={cn("font-semibold text-xs mt-1", getScoreTextColor(scan.categories.headers.score, scan.categories.headers.maxScore))}>
+                      {scan.categories.headers.score}<span className="text-slate-500 font-normal">/{scan.categories.headers.maxScore}</span>
                     </div>
                   </div>
-                  <div className="p-2 rounded bg-navy-950/60 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">DNS</div>
-                    <div className="font-bold text-purple-400 mt-0.5">
-                      {scan.categories.dns.score}/25
+                  <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80">
+                    <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">DNS</div>
+                    <div className={cn("font-semibold text-xs mt-1", getScoreTextColor(scan.categories.dns.score, scan.categories.dns.maxScore))}>
+                      {scan.categories.dns.score}<span className="text-slate-500 font-normal">/{scan.categories.dns.maxScore}</span>
                     </div>
                   </div>
                 </div>

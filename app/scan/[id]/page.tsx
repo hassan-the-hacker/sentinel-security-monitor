@@ -21,6 +21,7 @@ import {
   Copy,
   Check,
   Terminal,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -179,9 +180,16 @@ function ScanResultContent() {
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return "text-emerald-400";
-    if (score >= 70) return "text-cyan-400";
+    if (score >= 70) return "text-blue-400";
     if (score >= 55) return "text-amber-400";
-    return "text-red-400";
+    return "text-rose-400";
+  };
+
+  const getCategoryTheme = (score: number, maxScore: number) => {
+    const ratio = maxScore > 0 ? score / maxScore : 0;
+    if (ratio >= 0.8) return { text: "text-emerald-400", bar: "bg-emerald-500" };
+    if (ratio >= 0.5) return { text: "text-amber-400", bar: "bg-amber-500" };
+    return { text: "text-rose-400", bar: "bg-rose-500" };
   };
 
   return (
@@ -234,71 +242,71 @@ function ScanResultContent() {
       {/* Top Posture Dashboard Header */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         {/* Overall Score */}
-        <Card glow="emerald" className="p-5 flex items-center justify-between">
+        <Card glow="none" className="p-5 flex items-center justify-between border-slate-800/80 bg-slate-900/60">
           <div>
-            <div className="text-xs font-mono text-slate-400">OVERALL SECURITY SCORE</div>
+            <div className="text-xs text-slate-400 font-medium">Overall security score</div>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className={cn("text-4xl font-extrabold font-mono", getScoreColor(scan.overallScore))}>
+              <span className={cn("text-4xl font-extrabold", getScoreColor(scan.overallScore))}>
                 {scan.overallScore}
               </span>
-              <span className="text-xs text-slate-400 font-mono">/ 100</span>
+              <span className="text-xs text-slate-500">/ 100</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Based on 4 passive threat vectors</p>
+            <p className="text-[11px] text-slate-400 mt-1">Based on 4 threat vectors</p>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-surface-100 border border-emerald-500/30 flex items-center justify-center font-mono font-black text-2xl text-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)]">
+          <div className="w-14 h-14 rounded-xl bg-slate-800/80 border border-emerald-500/20 flex items-center justify-center font-bold text-2xl text-emerald-400">
             {scan.grade}
           </div>
         </Card>
 
         {/* SSL Expiration */}
-        <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>SSL CERTIFICATE</span>
-            <Lock className="w-3.5 h-3.5 text-cyan-400" />
+        <Card glow="none" className="p-5 border-slate-800/80 bg-slate-900/60">
+          <div className="text-xs text-slate-400 font-medium flex items-center justify-between">
+            <span>SSL certificate</span>
+            <Lock className="w-3.5 h-3.5 text-slate-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono">
+            <span className="text-3xl font-bold text-slate-100">
               {scan.sslDetails.daysRemaining}
             </span>
-            <span className="text-xs text-slate-400">days left</span>
+            <span className="text-xs text-slate-500">days left</span>
           </div>
-          <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 font-mono truncate">
+          <p className="text-[11px] text-emerald-400 mt-1 flex items-center gap-1 truncate">
             <CheckCircle2 className="w-3 h-3 shrink-0" />
             {scan.sslDetails.issuer.organization || scan.sslDetails.issuer.commonName || "Valid Certificate"}
           </p>
         </Card>
 
         {/* Findings Count */}
-        <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>TOTAL ISSUES</span>
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+        <Card glow="none" className="p-5 border-slate-800/80 bg-slate-900/60">
+          <div className="text-xs text-slate-400 font-medium flex items-center justify-between">
+            <span>Total issues</span>
+            <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono">
+            <span className="text-3xl font-bold text-slate-100">
               {scan.summary.criticalFindings + scan.summary.highFindings + scan.summary.mediumFindings + scan.summary.lowFindings}
             </span>
-            <span className="text-xs text-slate-400">detected</span>
+            <span className="text-xs text-slate-500">detected</span>
           </div>
-          <div className="mt-1 flex gap-1.5 text-[10px] font-mono">
-            <span className="text-red-400 font-semibold">{scan.summary.criticalFindings} Crit</span>
-            <span className="text-orange-400 font-semibold">{scan.summary.highFindings} High</span>
-            <span className="text-amber-400 font-semibold">{scan.summary.mediumFindings} Med</span>
+          <div className="mt-1 flex gap-1.5 text-[10px]">
+            <span className="text-rose-400 font-medium">{scan.summary.criticalFindings} crit</span> •{" "}
+            <span className="text-amber-400 font-medium">{scan.summary.highFindings} high</span> •{" "}
+            <span className="text-slate-400 font-medium">{scan.summary.mediumFindings} med</span>
           </div>
         </Card>
 
         {/* HTTPS Status */}
-        <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>HTTPS ENFORCEMENT</span>
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+        <Card glow="none" className="p-5 border-slate-800/80 bg-slate-900/60">
+          <div className="text-xs text-slate-400 font-medium flex items-center justify-between">
+            <span>HTTPS enforcement</span>
+            <Zap className="w-3.5 h-3.5 text-slate-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-xl font-bold text-emerald-400 font-mono">
-              {scan.httpsConfigDetails.httpRedirectsToHttps ? "STRICT" : "LENIENT"}
+            <span className="text-xl font-bold text-emerald-400">
+              {scan.httpsConfigDetails.httpRedirectsToHttps ? "Enforced" : "Lenient"}
             </span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1 font-mono truncate">
+          <p className="text-[11px] text-slate-400 mt-1 truncate">
             {scan.httpsConfigDetails.httpRedirectsToHttps
               ? `HTTP 301 -> ${scan.httpsConfigDetails.finalDestinationUrl}`
               : "No strict port 80 redirect"}
@@ -314,92 +322,92 @@ function ScanResultContent() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* SSL Category */}
-        <Card glow="none" className="p-4 space-y-3">
+        <Card glow="none" className="p-4 space-y-3 border-slate-800/80 bg-slate-900/60">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-200">SSL / TLS Encryption</span>
-            <span className="text-xs font-mono font-bold text-emerald-400">
-              {scan.categories.ssl.score} / {scan.categories.ssl.maxScore}
+            <span className="text-xs font-semibold text-slate-200">SSL / TLS Encryption</span>
+            <span className={cn("text-xs font-semibold", getCategoryTheme(scan.categories.ssl.score, scan.categories.ssl.maxScore).text)}>
+              {scan.categories.ssl.score} <span className="text-slate-500 font-normal">/ {scan.categories.ssl.maxScore}</span>
             </span>
           </div>
-          <div className="w-full bg-navy-950 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-emerald-400 h-full rounded-full transition-all"
+              className={cn("h-full rounded-full transition-all", getCategoryTheme(scan.categories.ssl.score, scan.categories.ssl.maxScore).bar)}
               style={{ width: `${(scan.categories.ssl.score / scan.categories.ssl.maxScore) * 100}%` }}
             />
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">
             {scan.categories.ssl.summary}
           </p>
-          <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between">
+          <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 flex justify-between">
             <span>Protocol: {scan.sslDetails.protocol}</span>
             <span>{scan.sslDetails.valid ? "CA Verified" : "Untrusted"}</span>
           </div>
         </Card>
 
         {/* Security Headers Category */}
-        <Card glow="none" className="p-4 space-y-3">
+        <Card glow="none" className="p-4 space-y-3 border-slate-800/80 bg-slate-900/60">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-200">Security Headers</span>
-            <span className="text-xs font-mono font-bold text-cyan-400">
-              {scan.categories.headers.score} / {scan.categories.headers.maxScore}
+            <span className="text-xs font-semibold text-slate-200">Security Headers</span>
+            <span className={cn("text-xs font-semibold", getCategoryTheme(scan.categories.headers.score, scan.categories.headers.maxScore).text)}>
+              {scan.categories.headers.score} <span className="text-slate-500 font-normal">/ {scan.categories.headers.maxScore}</span>
             </span>
           </div>
-          <div className="w-full bg-navy-950 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-cyan-400 h-full rounded-full transition-all"
+              className={cn("h-full rounded-full transition-all", getCategoryTheme(scan.categories.headers.score, scan.categories.headers.maxScore).bar)}
               style={{ width: `${(scan.categories.headers.score / scan.categories.headers.maxScore) * 100}%` }}
             />
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">
             {scan.categories.headers.summary}
           </p>
-          <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between">
+          <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 flex justify-between">
             <span>Checks Passed: {scan.categories.headers.passedChecks}/{scan.categories.headers.totalChecks}</span>
             <span>Weight: 30%</span>
           </div>
         </Card>
 
         {/* DNS Category */}
-        <Card glow="none" className="p-4 space-y-3">
+        <Card glow="none" className="p-4 space-y-3 border-slate-800/80 bg-slate-900/60">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-200">DNS & Email Protection</span>
-            <span className="text-xs font-mono font-bold text-purple-400">
-              {scan.categories.dns.score} / {scan.categories.dns.maxScore}
+            <span className="text-xs font-semibold text-slate-200">DNS & Email Protection</span>
+            <span className={cn("text-xs font-semibold", getCategoryTheme(scan.categories.dns.score, scan.categories.dns.maxScore).text)}>
+              {scan.categories.dns.score} <span className="text-slate-500 font-normal">/ {scan.categories.dns.maxScore}</span>
             </span>
           </div>
-          <div className="w-full bg-navy-950 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-purple-400 h-full rounded-full transition-all"
+              className={cn("h-full rounded-full transition-all", getCategoryTheme(scan.categories.dns.score, scan.categories.dns.maxScore).bar)}
               style={{ width: `${(scan.categories.dns.score / scan.categories.dns.maxScore) * 100}%` }}
             />
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">
             {scan.categories.dns.summary}
           </p>
-          <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between">
+          <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 flex justify-between">
             <span>DMARC: {scan.dnsDetails.dmarc.policy || "None"}</span>
             <span>DNSSEC: {scan.dnsDetails.dnssec.enabled ? "Yes" : "No"}</span>
           </div>
         </Card>
 
         {/* HTTPS Category */}
-        <Card glow="none" className="p-4 space-y-3">
+        <Card glow="none" className="p-4 space-y-3 border-slate-800/80 bg-slate-900/60">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-200">HTTPS Routing</span>
-            <span className="text-xs font-mono font-bold text-amber-400">
-              {scan.categories.https.score} / {scan.categories.https.maxScore}
+            <span className="text-xs font-semibold text-slate-200">HTTPS Routing</span>
+            <span className={cn("text-xs font-semibold", getCategoryTheme(scan.categories.https.score, scan.categories.https.maxScore).text)}>
+              {scan.categories.https.score} <span className="text-slate-500 font-normal">/ {scan.categories.https.maxScore}</span>
             </span>
           </div>
-          <div className="w-full bg-navy-950 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-amber-400 h-full rounded-full transition-all"
+              className={cn("h-full rounded-full transition-all", getCategoryTheme(scan.categories.https.score, scan.categories.https.maxScore).bar)}
               style={{ width: `${(scan.categories.https.score / scan.categories.https.maxScore) * 100}%` }}
             />
           </div>
           <p className="text-[11px] text-slate-400 leading-tight">
             {scan.categories.https.summary}
           </p>
-          <div className="pt-2 border-t border-slate-800 text-[10px] font-mono text-slate-400 flex justify-between">
+          <div className="pt-2 border-t border-slate-800/80 text-[10px] text-slate-400 flex justify-between">
             <span>Status: {scan.httpsConfigDetails.redirectStatusCode || "N/A"}</span>
             <span>Weight: 20%</span>
           </div>
@@ -409,23 +417,23 @@ function ScanResultContent() {
       {/* Security Headers Inspection Table */}
       <div className="mb-8">
         <h2 className="text-base font-bold text-slate-100 mb-4 flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-cyan-400" />
+          <FileText className="w-4 h-4 text-emerald-400" />
           HTTP Security Header Matrix
         </h2>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-surface-200">
+        <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800 bg-navy-950 font-mono text-slate-400">
-                <th className="py-3 px-4">Header</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Observed Value</th>
-                <th className="py-3 px-4">Security Impact</th>
+              <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-400 font-medium">
+                <th className="py-3 px-4 font-normal">Header</th>
+                <th className="py-3 px-4 font-normal">Status</th>
+                <th className="py-3 px-4 font-normal">Observed Value</th>
+                <th className="py-3 px-4 font-normal">Security Impact</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
               {scan.headersDetails.map((hdr) => (
-                <tr key={hdr.header} className="hover:bg-surface-100/60 transition-colors">
+                <tr key={hdr.header} className="hover:bg-slate-800/40 transition-colors">
                   <td className="py-3 px-4 font-mono font-semibold text-slate-200">
                     {hdr.header}
                   </td>
