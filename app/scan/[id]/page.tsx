@@ -28,8 +28,9 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CompleteScanResult, Finding, SeverityLevel } from "@/types/scanner";
 import { generateSecurityReportPdf } from "@/services/pdf-report-generator";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-export default function ScanResultPage() {
+function ScanResultContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,28 +45,52 @@ export default function ScanResultPage() {
   const [copiedSnippet, setCopiedSnippet] = useState(false);
 
   useEffect(() => {
-    // 1. Try to find scan in localStorage
-    try {
-      const history: CompleteScanResult[] = JSON.parse(
-        localStorage.getItem("sentinel_scan_history") || "[]"
-      );
-      const found = history.find((s) => s.id === scanId || (paramDomain && s.domain === paramDomain));
-      if (found) {
-        setScan(found);
-        setLoading(false);
-        return;
+    async function resolveScan() {
+      // 1. Try to find scan in localStorage
+      try {
+        const history: CompleteScanResult[] = JSON.parse(
+          localStorage.getItem("sentinel_scan_history") || "[]"
+        );
+        const found = history.find((s) => s.id === scanId || (paramDomain && s.domain === paramDomain));
+        if (found) {
+          setScan(found);
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // Ignore
       }
-    } catch {
-      // Ignore
+
+      // 2. Query Supabase
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: dbScan } = await (supabase as any)
+            .from("scans")
+            .select("*")
+            .eq("id", scanId)
+            .single();
+
+          if (dbScan?.raw_payload) {
+            setScan({ ...(dbScan.raw_payload as CompleteScanResult), id: dbScan.id });
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // Ignore
+      }
+
+      // 3. If not found in history, but domain is supplied, execute live scan
+      if (paramDomain) {
+        fetchLiveScan(paramDomain);
+      } else {
+        setError("No scan report found for the requested ID. Please run a new scan.");
+        setLoading(false);
+      }
     }
 
-    // 2. If not found in history, but domain is supplied, execute live scan
-    if (paramDomain) {
-      fetchLiveScan(paramDomain);
-    } else {
-      setError("No scan report found for the requested ID. Please run a new scan.");
-      setLoading(false);
-    }
+    resolveScan();
   }, [scanId, paramDomain]);
 
   const fetchLiveScan = async (domainToScan: string) => {
@@ -451,7 +476,7 @@ export default function ScanResultPage() {
           </Button>
         </div>
         <pre className="p-3.5 rounded-lg bg-navy-950 border border-slate-800 text-[11px] font-mono text-slate-300 overflow-x-auto">
-{`# Sentinel Hardened Security Headers
+          {`# Sentinel Hardened Security Headers
 add_header X-Frame-Options "DENY" always;
 add_header X-Content-Type-Options "nosniff" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
@@ -578,6 +603,20 @@ server_tokens off;`}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ScanResultPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[90vh] flex items-center justify-center text-slate-400 font-mono text-sm">
+          Loading Security Report...
+        </div>
+      }
+    >
+      <ScanResultContent />
+    </React.Suspense>
   );
 }
 

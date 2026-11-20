@@ -3,22 +3,23 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  ShieldAlert, 
-  LayoutDashboard, 
-  Radar, 
-  History, 
-  FileText, 
-  Settings, 
-  User, 
-  LogOut, 
-  Menu, 
+import {
+  ShieldAlert,
+  LayoutDashboard,
+  Radar,
+  History,
+  FileText,
+  Settings,
+  User,
+  LogOut,
+  Menu,
   X,
   ShieldCheck,
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/Button";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -26,7 +27,7 @@ export default function Navbar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is logged in (session storage / localStorage or demo mode)
+    // 1. Check local session cache
     const storedUser = localStorage.getItem("sentinel_user");
     if (storedUser) {
       try {
@@ -36,9 +37,27 @@ export default function Navbar() {
         setUserEmail("analyst@sentinel.sec");
       }
     }
+
+    // 2. Sync with Supabase session if active
+    const supabase = createClient();
+    if (supabase) {
+      supabase.auth.getUser().then((res: { data: { user: { email?: string } | null } }) => {
+        if (res.data?.user?.email) {
+          setUserEmail(res.data.user.email);
+        }
+      });
+    }
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch {
+      // non-fatal
+    }
     localStorage.removeItem("sentinel_user");
     localStorage.removeItem("sentinel_token");
     setUserEmail(null);

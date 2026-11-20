@@ -30,7 +30,7 @@ interface ScanLogItem {
   status: "info" | "success" | "warn" | "fail";
 }
 
-export default function ScannerPage() {
+function ScannerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -289,13 +289,12 @@ export default function ScannerPage() {
           return (
             <div
               key={st.num}
-              className={`p-3.5 rounded-xl border transition-all ${
-                isComplete
+              className={`p-3.5 rounded-xl border transition-all ${isComplete
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.15)]"
                   : isCurrent
-                  ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400 animate-pulse"
-                  : "bg-surface-200/60 border-slate-800 text-slate-400"
-              }`}
+                    ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400 animate-pulse"
+                    : "bg-surface-200/60 border-slate-800 text-slate-400"
+                }`}
             >
               <div className="flex items-center justify-between mb-1.5 font-mono text-xs">
                 <span>STAGE 0{st.num}</span>
@@ -336,10 +335,10 @@ export default function ScannerPage() {
                     log.status === "success"
                       ? "text-emerald-400"
                       : log.status === "fail"
-                      ? "text-red-400"
-                      : log.status === "warn"
-                      ? "text-amber-400"
-                      : "text-slate-300"
+                        ? "text-red-400"
+                        : log.status === "warn"
+                          ? "text-amber-400"
+                          : "text-slate-300"
                   }
                 >
                   {log.text}
@@ -395,6 +394,20 @@ export default function ScannerPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ScannerPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-[90vh] flex items-center justify-center text-slate-400 font-mono text-sm">
+          Initializing Scanner Console...
+        </div>
+      }
+    >
+      <ScannerContent />
+    </React.Suspense>
   );
 }
 

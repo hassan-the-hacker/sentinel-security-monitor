@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/Badge";
 import { CompleteScanResult } from "@/types/scanner";
 import { formatTimeAgo, cn } from "@/lib/utils";
 import { generateSecurityReportPdf } from "@/services/pdf-report-generator";
+import { createClient } from "@/lib/supabase/client";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -52,7 +53,39 @@ export default function DashboardPage() {
     loadScanHistory();
   }, []);
 
-  const loadScanHistory = () => {
+  const loadScanHistory = async () => {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: dbScans, error } = await supabase
+            .from("scans")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (!error && dbScans && dbScans.length > 0) {
+            const formatted: CompleteScanResult[] = (dbScans as any[])
+              .map((s) => {
+                if (s.raw_payload) {
+                  return { ...(s.raw_payload as CompleteScanResult), id: s.id };
+                }
+                return null;
+              })
+              .filter((s): s is CompleteScanResult => s !== null);
+
+            if (formatted.length > 0) {
+              setScans(formatted);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+      }
+    } catch {
+      // Fallback below
+    }
+
     try {
       const historyStr = localStorage.getItem("sentinel_scan_history");
       if (historyStr) {
@@ -92,9 +125,17 @@ export default function DashboardPage() {
     router.push(`/scanner?domain=${encodeURIComponent(cleaned)}&authorized=true`);
   };
 
-  const handleDeleteScan = (id: string, e: React.MouseEvent) => {
+  const handleDeleteScan = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this scan record?")) {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          await supabase.from("scans").delete().eq("id", id);
+        }
+      } catch {
+        // non-fatal
+      }
       const updated = scans.filter((s) => s.id !== id);
       setScans(updated);
       localStorage.setItem("sentinel_scan_history", JSON.stringify(updated));

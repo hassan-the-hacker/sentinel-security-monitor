@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CompleteScanResult } from "@/types/scanner";
 import { generateSecurityReportPdf } from "@/services/pdf-report-generator";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -24,16 +25,55 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const historyStr = localStorage.getItem("sentinel_scan_history");
-      if (historyStr) {
-        setScans(JSON.parse(historyStr));
+    async function loadReports() {
+      setLoading(true);
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: dbScans, error } = await supabase
+              .from("scans")
+              .select("*")
+              .order("created_at", { ascending: false });
+
+            if (!error && dbScans && dbScans.length > 0) {
+              const formatted: CompleteScanResult[] = (dbScans as any[])
+                .map((s) => {
+                  if (s.raw_payload) {
+                    return { ...(s.raw_payload as CompleteScanResult), id: s.id };
+                  }
+                  return null;
+                })
+                .filter((s): s is CompleteScanResult => s !== null);
+
+              if (formatted.length > 0) {
+                setScans(formatted);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        }
+      } catch {
+        // Fallback
       }
-    } catch {
-      setScans([]);
-    } finally {
-      setLoading(false);
+
+      try {
+        const historyStr = localStorage.getItem("sentinel_scan_history");
+        if (historyStr) {
+          setScans(JSON.parse(historyStr));
+        } else {
+          setScans([]);
+        }
+      } catch {
+        setScans([]);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    loadReports();
   }, []);
 
   return (

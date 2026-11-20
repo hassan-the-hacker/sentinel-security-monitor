@@ -42,8 +42,9 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient();
+      let registeredUserId = "usr_" + Math.random().toString(36).substring(2, 9);
       if (supabase) {
-        const { error: authError } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
         });
@@ -53,6 +54,10 @@ export default function RegisterPage() {
           setLoading(false);
           return;
         }
+
+        if (authData?.user) {
+          registeredUserId = authData.user.id;
+        }
       }
 
       setSuccess(true);
@@ -61,7 +66,7 @@ export default function RegisterPage() {
         JSON.stringify({
           email,
           role: "SecOps Lead",
-          id: "usr_" + Math.random().toString(36).substring(2, 9),
+          id: registeredUserId,
         })
       );
 

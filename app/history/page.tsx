@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/Input";
 import { CompleteScanResult, SecurityGrade } from "@/types/scanner";
 import { formatTimeAgo } from "@/lib/utils";
 import { generateSecurityReportPdf } from "@/services/pdf-report-generator";
+import { createClient } from "@/lib/supabase/client";
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -31,28 +32,86 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const historyStr = localStorage.getItem("sentinel_scan_history");
-      if (historyStr) {
-        setScans(JSON.parse(historyStr));
+    async function loadScans() {
+      setLoading(true);
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: dbScans, error } = await supabase
+              .from("scans")
+              .select("*")
+              .order("created_at", { ascending: false });
+
+            if (!error && dbScans && dbScans.length > 0) {
+              const formatted: CompleteScanResult[] = (dbScans as any[])
+                .map((s) => {
+                  if (s.raw_payload) {
+                    return { ...(s.raw_payload as CompleteScanResult), id: s.id };
+                  }
+                  return null;
+                })
+                .filter((s): s is CompleteScanResult => s !== null);
+
+              if (formatted.length > 0) {
+                setScans(formatted);
+                setLoading(false);
+                return;
+              }
+            }
+          }
+        }
+      } catch {
+        // Fallback to local storage below
       }
-    } catch {
-      setScans([]);
-    } finally {
-      setLoading(false);
+
+      try {
+        const historyStr = localStorage.getItem("sentinel_scan_history");
+        if (historyStr) {
+          setScans(JSON.parse(historyStr));
+        } else {
+          setScans([]);
+        }
+      } catch {
+        setScans([]);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    loadScans();
   }, []);
 
-  const handleDeleteScan = (id: string, domain: string) => {
+  const handleDeleteScan = async (id: string, domain: string) => {
     if (confirm(`Delete scan record for "${domain}"? This action cannot be undone.`)) {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          await supabase.from("scans").delete().eq("id", id);
+        }
+      } catch {
+        // non-fatal
+      }
       const updated = scans.filter((s) => s.id !== id);
       setScans(updated);
       localStorage.setItem("sentinel_scan_history", JSON.stringify(updated));
     }
   };
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (confirm("Are you sure you want to clear your entire scan history?")) {
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("scans").delete().eq("user_id", user.id);
+          }
+        }
+      } catch {
+        // non-fatal
+      }
       setScans([]);
       localStorage.removeItem("sentinel_scan_history");
     }
@@ -109,11 +168,10 @@ export default function HistoryPage() {
             <button
               key={grade}
               onClick={() => setGradeFilter(grade)}
-              className={`px-3 py-1.5 rounded-lg border transition-all ${
-                gradeFilter === grade
+              className={`px-3 py-1.5 rounded-lg border transition-all ${gradeFilter === grade
                   ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold"
                   : "bg-surface-100 border-slate-800 text-slate-400 hover:text-slate-200"
-              }`}
+                }`}
             >
               {grade}
             </button>

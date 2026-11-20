@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CompleteScanResult } from "@/types/scanner";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -27,11 +28,26 @@ export default function ProfilePage() {
   const [scanCount, setScanCount] = useState(0);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("sentinel_user");
-      if (stored) {
-        setUser(JSON.parse(stored));
-      } else {
+    async function initProfile() {
+      // 1. Initial local fallback
+      try {
+        const stored = localStorage.getItem("sentinel_user");
+        if (stored) {
+          setUser(JSON.parse(stored));
+        } else {
+          setUser({
+            email: "analyst@sentinel.sec",
+            role: "Lead Cybersecurity Engineer",
+            id: "usr_786sec",
+          });
+        }
+
+        const historyStr = localStorage.getItem("sentinel_scan_history");
+        if (historyStr) {
+          const history: CompleteScanResult[] = JSON.parse(historyStr);
+          setScanCount(history.length);
+        }
+      } catch {
         setUser({
           email: "analyst@sentinel.sec",
           role: "Lead Cybersecurity Engineer",
@@ -39,21 +55,44 @@ export default function ProfilePage() {
         });
       }
 
-      const historyStr = localStorage.getItem("sentinel_scan_history");
-      if (historyStr) {
-        const history: CompleteScanResult[] = JSON.parse(historyStr);
-        setScanCount(history.length);
+      // 2. Fetch live data from Supabase if connected
+      try {
+        const supabase = createClient();
+        if (supabase) {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            setUser({
+              email: authUser.email || "analyst@sentinel.sec",
+              role: "Lead Cybersecurity Engineer",
+              id: authUser.id,
+            });
+
+            const { count } = await supabase
+              .from("scans")
+              .select("*", { count: "exact", head: true });
+
+            if (count !== null && count !== undefined) {
+              setScanCount(count);
+            }
+          }
+        }
+      } catch {
+        // Fallback intact
       }
-    } catch {
-      setUser({
-        email: "analyst@sentinel.sec",
-        role: "Lead Cybersecurity Engineer",
-        id: "usr_786sec",
-      });
     }
+
+    initProfile();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } catch {
+      // non-fatal
+    }
     localStorage.removeItem("sentinel_user");
     localStorage.removeItem("sentinel_token");
     window.location.href = "/login";

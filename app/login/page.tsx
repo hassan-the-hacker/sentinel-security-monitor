@@ -25,15 +25,27 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       if (supabase) {
-        const { error: authError } = await supabase.auth.signInWithPassword({
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (authError) {
-          // If Supabase authentication fails, inform the user
           setError(authError.message);
           setLoading(false);
+          return;
+        }
+
+        if (authData?.user) {
+          localStorage.setItem(
+            "sentinel_user",
+            JSON.stringify({
+              email: authData.user.email || email,
+              role: "SecOps Lead",
+              id: authData.user.id,
+            })
+          );
+          router.push("/dashboard");
           return;
         }
       }

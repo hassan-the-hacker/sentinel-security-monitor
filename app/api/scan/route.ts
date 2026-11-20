@@ -35,15 +35,24 @@ export async function POST(request: NextRequest) {
       const supabase = createServerSupabaseClient();
       if (supabase) {
         const {
-          data: { session },
-        } = await supabase.auth.getSession();
+          data: { user },
+        } = await supabase.auth.getUser();
 
-        if (session?.user?.id) {
+        if (user?.id) {
+          // Ensure user record exists in public.users to satisfy foreign key
+          await (supabase as any).from("users").upsert(
+            {
+              id: user.id,
+              email: user.email || `${user.id}@sentinel.local`,
+            },
+            { onConflict: "id" }
+          );
+
           // 1. Insert scan record
-          const { data: scanRow, error: scanInsertError } = await supabase
+          const { data: scanRow, error: scanInsertError } = await (supabase as any)
             .from("scans")
             .insert({
-              user_id: session.user.id,
+              user_id: user.id,
               domain: scanResult.domain,
               overall_score: scanResult.overallScore,
               security_grade: scanResult.grade,
@@ -69,7 +78,7 @@ export async function POST(request: NextRequest) {
             }));
 
             if (findingsToInsert.length > 0) {
-              await supabase.from("scan_results").insert(findingsToInsert);
+              await (supabase as any).from("scan_results").insert(findingsToInsert);
             }
 
             // Sync generated database ID with scanResult
