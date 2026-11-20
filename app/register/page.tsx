@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [confirmationRequired, setConfirmationRequired] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -42,31 +43,46 @@ export default function RegisterPage() {
 
     try {
       const supabase = createClient();
-      let registeredUserId = "usr_" + Math.random().toString(36).substring(2, 9);
-      if (supabase) {
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      if (!supabase) {
+        setError(
+          "Supabase database connection is not configured. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables."
+        );
+        setLoading(false);
+        return;
+      }
 
-        if (authError) {
-          setError(authError.message);
-          setLoading(false);
-          return;
-        }
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+      });
 
-        if (authData?.user) {
-          registeredUserId = authData.user.id;
-        }
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!authData?.user) {
+        setError("Registration could not be completed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // If Supabase has email confirmation enabled, session is null until confirmed
+      if (!authData.session) {
+        setConfirmationRequired(true);
+        setSuccess(true);
+        setLoading(false);
+        return;
       }
 
       setSuccess(true);
       localStorage.setItem(
         "sentinel_user",
         JSON.stringify({
-          email,
+          email: authData.user.email || email,
           role: "SecOps Lead",
-          id: registeredUserId,
+          id: authData.user.id,
         })
       );
 
@@ -99,15 +115,30 @@ export default function RegisterPage() {
 
         <Card glow="none" className="p-6">
           {success ? (
-            <div className="text-center py-6 space-y-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
+            confirmationRequired ? (
+              <div className="text-center py-6 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-100">Check Your Email</h3>
+                <p className="text-xs text-slate-400">
+                  A confirmation email was sent to <strong className="text-slate-200">{email}</strong>. Please confirm your email address, then{" "}
+                  <Link href="/login" className="text-emerald-400 underline font-semibold">
+                    sign in to your console
+                  </Link>.
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-slate-100">Account Created Successfully</h3>
-              <p className="text-xs text-slate-400">
-                Directing you into your Sentinel Cybersecurity Console...
-              </p>
-            </div>
+            ) : (
+              <div className="text-center py-6 space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-100">Account Created Successfully</h3>
+                <p className="text-xs text-slate-400">
+                  Directing you into your Sentinel Cybersecurity Console...
+                </p>
+              </div>
+            )
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
               {error && (

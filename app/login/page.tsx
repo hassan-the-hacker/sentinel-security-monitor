@@ -24,39 +24,38 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      if (supabase) {
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (authError) {
-          setError(authError.message);
-          setLoading(false);
-          return;
-        }
-
-        if (authData?.user) {
-          localStorage.setItem(
-            "sentinel_user",
-            JSON.stringify({
-              email: authData.user.email || email,
-              role: "SecOps Lead",
-              id: authData.user.id,
-            })
-          );
-          router.push("/dashboard");
-          return;
-        }
+      if (!supabase) {
+        setError(
+          "Supabase database connection is not configured. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables."
+        );
+        setLoading(false);
+        return;
       }
 
-      // Store local session for UI persistence and offline/demo support
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message || "Invalid login credentials. Please check your email and password.");
+        setLoading(false);
+        return;
+      }
+
+      if (!authData?.user) {
+        setError("Invalid login credentials. Please check your email and password.");
+        setLoading(false);
+        return;
+      }
+
+      // Store authenticated user session
       localStorage.setItem(
         "sentinel_user",
         JSON.stringify({
-          email: email || "analyst@sentinel.sec",
+          email: authData.user.email || email,
           role: "SecOps Lead",
-          id: "usr_" + Math.random().toString(36).substring(2, 9),
+          id: authData.user.id,
         })
       );
 
