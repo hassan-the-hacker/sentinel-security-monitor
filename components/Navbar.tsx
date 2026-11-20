@@ -1,0 +1,215 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { 
+  ShieldAlert, 
+  LayoutDashboard, 
+  Radar, 
+  History, 
+  FileText, 
+  Settings, 
+  User, 
+  LogOut, 
+  Menu, 
+  X,
+  ShieldCheck,
+  ExternalLink
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "./ui/Button";
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Check if user is logged in (session storage / localStorage or demo mode)
+    const storedUser = localStorage.getItem("sentinel_user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserEmail(parsed.email || "analyst@sentinel.sec");
+      } catch {
+        setUserEmail("analyst@sentinel.sec");
+      }
+    }
+  }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("sentinel_user");
+    localStorage.removeItem("sentinel_token");
+    setUserEmail(null);
+    window.location.href = "/";
+  };
+
+  const navLinks = [
+    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/scanner", label: "Scanner", icon: Radar },
+    { href: "/history", label: "History", icon: History },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/settings", label: "Settings", icon: Settings },
+  ];
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-navy-950/85 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="relative flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 group-hover:border-emerald-400 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all">
+              <ShieldCheck className="w-5 h-5" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-base tracking-wider text-slate-100 group-hover:text-emerald-400 transition-colors">
+                  SENTINEL
+                </span>
+                <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                  PRO
+                </span>
+              </div>
+              <p className="text-[10px] tracking-tight text-slate-400 hidden sm:block">
+                Cybersecurity Health Monitor
+              </p>
+            </div>
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                    isActive
+                      ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.15)]"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/40"
+                  )}
+                >
+                  <Icon className="w-4 h-4" />
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Right Action / Auth */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Live Status Badge */}
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-100 border border-slate-800 text-[11px] font-mono text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>SCANNER ONLINE</span>
+            </div>
+
+            {userEmail ? (
+              <div className="flex items-center gap-2">
+                <Link href="/profile">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-100 border border-slate-700 hover:border-emerald-500/40 text-slate-200 text-xs transition-colors">
+                    <User className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="truncate max-w-[140px]">{userEmail}</span>
+                  </div>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  title="Sign out"
+                  className="p-2 rounded-lg bg-surface-100 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button variant="primary" size="sm">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg bg-surface-100 border border-slate-800 text-slate-300 hover:text-white"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-b border-slate-800 bg-navy-950/95 px-4 pt-2 pb-6 space-y-2">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium",
+                  isActive
+                    ? "text-emerald-400 bg-emerald-500/10 border border-emerald-500/30"
+                    : "text-slate-300 hover:bg-slate-800/60"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            );
+          })}
+
+          <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-2">
+            {userEmail ? (
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 text-sm text-slate-300"
+                >
+                  <User className="w-4 h-4 text-emerald-400" />
+                  <span className="truncate max-w-[200px]">{userEmail}</span>
+                </Link>
+                <Button variant="danger" size="sm" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="secondary" size="sm" className="w-full">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="primary" size="sm" className="w-full">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
