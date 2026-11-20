@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, CheckCircle2, Shield, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -37,7 +37,7 @@ export default function RegisterPage() {
     }
 
     if (!agreedTerms) {
-      setError("You must agree to the Responsible Security Assessment policy.");
+      setError("Please accept the terms before creating an account.");
       return;
     }
 
@@ -47,7 +47,7 @@ export default function RegisterPage() {
       const supabase = createClient();
       if (!supabase) {
         setError(
-          "Supabase database connection is not configured. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables."
+          "Database connection is not configured. Please ensure Supabase credentials are set in your environment."
         );
         setLoading(false);
         return;
@@ -70,7 +70,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // If Supabase has email confirmation enabled, session is null until confirmed
       if (!authData.session) {
         setConfirmationRequired(true);
         setSuccess(true);
@@ -100,51 +99,54 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 cyber-grid">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
+        {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:border-emerald-500/40 transition-colors">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <span className="font-bold text-xl tracking-wider text-slate-100">SENTINEL</span>
+            <span className="font-semibold text-lg text-slate-100 group-hover:text-emerald-400 transition-colors tracking-tight">
+              Sentinel
+            </span>
           </Link>
-          <h1 className="text-2xl font-bold text-slate-100">Create Security Account</h1>
-          <p className="text-xs text-slate-400 mt-1.5">
-            Register to save audit history and generate executive compliance reports
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Create an account</h1>
+          <p className="text-sm text-slate-400 mt-1.5">
+            Start monitoring and assessing your website security posture.
           </p>
         </div>
 
-        <Card glow="none" className="p-6">
+        <Card glow="none" className="p-7 border-slate-800 bg-slate-900/60 backdrop-blur-xl">
           {success ? (
             confirmationRequired ? (
               <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100">Check Your Email</h3>
-                <p className="text-xs text-slate-400">
-                  A confirmation email was sent to <strong className="text-slate-200">{email}</strong>. Please confirm your email address, then{" "}
-                  <Link href="/login" className="text-emerald-400 underline font-semibold">
-                    sign in to your console
+                <h3 className="text-lg font-semibold text-slate-100">Check your email</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  A verification link was sent to <strong className="text-slate-200">{email}</strong>. Once confirmed, you can{" "}
+                  <Link href="/login" className="text-emerald-400 hover:underline font-medium">
+                    sign in to your account
                   </Link>.
                 </p>
               </div>
             ) : (
               <div className="text-center py-6 space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-100">Account Created Successfully</h3>
+                <h3 className="text-lg font-semibold text-slate-100">Account created</h3>
                 <p className="text-xs text-slate-400">
-                  Directing you into your Sentinel Cybersecurity Console...
+                  Redirecting to your dashboard...
                 </p>
               </div>
             )
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
               {error && (
-                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -152,12 +154,12 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  Work Email Address
+                  Email address
                 </label>
                 <Input
                   type="email"
                   required
-                  placeholder="analyst@organization.com"
+                  placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   leftIcon={<Mail className="w-4 h-4" />}
@@ -179,7 +181,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="p-1 text-slate-400 hover:text-emerald-400 focus:outline-none transition-colors"
+                      className="p-1 text-slate-400 hover:text-slate-200 focus:outline-none transition-colors"
                       title={showPassword ? "Hide password" : "Show password"}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
@@ -191,7 +193,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  Confirm Password
+                  Confirm password
                 </label>
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
@@ -204,7 +206,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="p-1 text-slate-400 hover:text-emerald-400 focus:outline-none transition-colors"
+                      className="p-1 text-slate-400 hover:text-slate-200 focus:outline-none transition-colors"
                       title={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                       aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                     >
@@ -220,10 +222,10 @@ export default function RegisterPage() {
                   id="terms"
                   checked={agreedTerms}
                   onChange={(e) => setAgreedTerms(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-navy-950 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
                 />
-                <label htmlFor="terms" className="text-xs text-slate-400 cursor-pointer select-none leading-tight">
-                  I agree to the <span className="text-emerald-400">Responsible Disclosure & Assessment Policy</span>. I agree to only scan web properties I own or have legal authorization to evaluate.
+                <label htmlFor="terms" className="text-xs text-slate-400 cursor-pointer select-none leading-relaxed">
+                  I agree to only scan domains and web properties I own or have legal authorization to evaluate.
                 </label>
               </div>
 
@@ -232,26 +234,23 @@ export default function RegisterPage() {
                 variant="primary"
                 size="md"
                 isLoading={loading}
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-                className="w-full mt-2 font-semibold"
+                className="w-full mt-2 font-medium"
               >
-                Create SecOps Account
+                Create account
               </Button>
             </form>
           )}
 
-          <div className="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
-            Already registered?{" "}
-            <Link
-              href="/login"
-              className="font-medium text-emerald-400 hover:text-emerald-300 ml-1 underline underline-offset-4"
-            >
-              Sign In
-            </Link>
-          </div>
+          {!success && (
+            <div className="mt-6 pt-5 border-t border-slate-800/80 text-center text-xs text-slate-400">
+              Already have an account?{" "}
+              <Link href="/login" className="text-emerald-400 hover:text-emerald-300 font-medium">
+                Sign in
+              </Link>
+            </div>
+          )}
         </Card>
       </div>
     </div>
   );
 }
-

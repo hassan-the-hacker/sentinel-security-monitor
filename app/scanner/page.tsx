@@ -166,21 +166,16 @@ function ScannerContent() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 cyber-grid min-h-[90vh]">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[90vh]">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-8 mb-8 border-b border-slate-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-8 border-b border-slate-800/80 gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 flex items-center gap-2.5">
-              <Radar className="w-7 h-7 text-emerald-400 animate-spin-slow" />
-              Website Security Scanner
-            </h1>
-            <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 font-mono text-xs">
-              NON-INVASIVE
-            </Badge>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Perform safe, non-destructive external audits on web applications and domains you authorize.
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-2.5">
+            <Radar className="w-6 h-6 text-emerald-400" />
+            Security scanner
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Run an external audit of SSL certificates, HTTP security headers, and DNS records.
           </p>
         </div>
 
@@ -190,7 +185,7 @@ function ScannerContent() {
             size="sm"
             onClick={() => router.push("/dashboard")}
           >
-            Go to Dashboard
+            Go to dashboard
           </Button>
         </div>
       </div>
@@ -205,18 +200,18 @@ function ScannerContent() {
           className="space-y-4"
         >
           <div>
-            <label className="block text-xs font-mono uppercase text-slate-300 tracking-wider mb-2">
-              Target Domain or FQDN
+            <label className="block text-xs font-medium text-slate-300 mb-2">
+              Domain to scan
             </label>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Input
                   type="text"
-                  placeholder="e.g. cloudflare.com, github.com, yourdomain.com"
+                  placeholder="example.com (or stripe.com, cloudflare.com)"
                   value={domain}
                   onChange={(e) => setDomain(e.target.value)}
                   disabled={isScanning}
-                  className="font-mono text-sm py-3"
+                  className="text-sm py-2.5"
                   leftIcon={<Globe className="w-4 h-4" />}
                 />
               </div>
@@ -227,28 +222,28 @@ function ScannerContent() {
                 isLoading={isScanning}
                 disabled={isScanning}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
-                className="font-semibold py-3 px-6 shrink-0"
+                className="shrink-0"
               >
-                {isScanning ? "Auditing Target..." : "Initiate Security Scan"}
+                {isScanning ? "Scanning..." : "Start scan"}
               </Button>
             </div>
           </div>
 
           {/* Authorization Checkbox */}
-          <div className="p-3 rounded-lg bg-navy-950/80 border border-slate-800 flex items-start gap-3">
+          <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 flex items-start gap-3">
             <input
               type="checkbox"
               id="auth-checkbox"
               checked={authorized}
               onChange={(e) => setAuthorized(e.target.checked)}
               disabled={isScanning}
-              className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-surface-200 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+              className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
             />
             <label
               htmlFor="auth-checkbox"
               className="text-xs text-slate-400 cursor-pointer select-none leading-relaxed"
             >
-              <strong className="text-slate-200">Legal Authorization Confirmation:</strong> I confirm that I own, operate, or have explicit permission to evaluate this domain. I understand that Sentinel performs passive, non-destructive external audits.
+              I confirm I am authorized to conduct passive external assessments on this domain.
             </label>
           </div>
 
@@ -261,8 +256,8 @@ function ScannerContent() {
         </form>
 
         {/* Preset Quick Actions */}
-        <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center gap-2 text-xs font-mono">
-          <span className="text-slate-400">Quick Test Targets:</span>
+        <div className="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-500">Quick targets:</span>
           {["github.com", "cloudflare.com", "supabase.com", "google.com"].map((preset) => (
             <button
               key={preset}
@@ -273,7 +268,7 @@ function ScannerContent() {
                 setAuthorized(true);
                 startScan(preset, true);
               }}
-              className="px-2.5 py-1 rounded bg-surface-100 hover:bg-surface-50 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-emerald-400 transition-colors disabled:opacity-50"
+              className="px-2.5 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 transition-colors disabled:opacity-50 text-xs"
             >
               {preset}
             </button>
@@ -290,24 +285,24 @@ function ScannerContent() {
             <div
               key={st.num}
               className={`p-3.5 rounded-xl border transition-all ${isComplete
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.15)]"
+                  ? "bg-slate-900 border-emerald-500/30 text-slate-200"
                   : isCurrent
-                    ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400 animate-pulse"
-                    : "bg-surface-200/60 border-slate-800 text-slate-400"
+                    ? "bg-slate-900 border-slate-700 text-slate-100"
+                    : "bg-slate-950/40 border-slate-800/80 text-slate-500"
                 }`}
             >
-              <div className="flex items-center justify-between mb-1.5 font-mono text-xs">
-                <span>STAGE 0{st.num}</span>
+              <div className="flex items-center justify-between mb-1.5 text-xs">
+                <span className="text-slate-500 font-medium">Step {st.num}</span>
                 {isComplete ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                 ) : isCurrent ? (
-                  <Clock className="w-4 h-4 text-cyan-400 animate-spin" />
+                  <Clock className="w-4 h-4 text-slate-300 animate-spin" />
                 ) : (
-                  <span className="text-slate-400">WAITING</span>
+                  <span className="text-slate-600">—</span>
                 )}
               </div>
               <div className="font-semibold text-xs text-slate-200 truncate">{st.title}</div>
-              <div className="text-[10px] text-slate-400 mt-0.5 truncate">{st.desc}</div>
+              <div className="text-[11px] text-slate-400 mt-0.5 truncate">{st.desc}</div>
             </div>
           );
         })}
@@ -316,17 +311,19 @@ function ScannerContent() {
       {/* Terminal Telemetry Logs */}
       {(logs.length > 0 || isScanning) && (
         <Card glow="none" className="p-0 overflow-hidden mb-8 border-slate-800">
-          <div className="flex items-center justify-between px-4 py-2.5 bg-navy-950 border-b border-slate-800">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950 border-b border-slate-800">
             <div className="flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-mono text-slate-300">Live Reconnaissance Stream</span>
+              <Terminal className="w-4 h-4 text-slate-400" />
+              <span className="text-xs font-medium text-slate-300">Scan activity</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-mono text-slate-400">TELEMETRY ACTIVE</span>
-            </div>
+            {isScanning && (
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[11px] text-slate-400">Running...</span>
+              </div>
+            )}
           </div>
-          <div className="p-4 bg-navy-950/90 font-mono text-xs max-h-60 overflow-y-auto space-y-1.5">
+          <div className="p-4 bg-slate-950/90 font-mono text-xs max-h-60 overflow-y-auto space-y-1.5">
             {logs.map((log) => (
               <div key={log.id} className="flex items-start gap-2 leading-relaxed">
                 <span className="text-slate-400 shrink-0">[{log.time}]</span>

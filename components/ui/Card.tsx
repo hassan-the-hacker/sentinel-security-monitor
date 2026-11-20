@@ -12,16 +12,16 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const glowStyles = {
-    emerald: "border-emerald-500/30 hover:border-emerald-500/60 shadow-[0_0_25px_-5px_rgba(16,185,129,0.15)]",
-    cyan: "border-cyan-500/30 hover:border-cyan-500/60 shadow-[0_0_25px_-5px_rgba(6,182,212,0.15)]",
-    red: "border-red-500/30 hover:border-red-500/60 shadow-[0_0_25px_-5px_rgba(239,68,68,0.15)]",
+    emerald: "border-emerald-500/30 hover:border-emerald-500/50 shadow-[0_4px_20px_-4px_rgba(16,185,129,0.1)]",
+    cyan: "border-cyan-500/30 hover:border-cyan-500/50 shadow-[0_4px_20px_-4px_rgba(6,182,212,0.1)]",
+    red: "border-red-500/30 hover:border-red-500/50 shadow-[0_4px_20px_-4px_rgba(239,68,68,0.1)]",
     none: "border-slate-800/80 hover:border-slate-700/80",
   };
 
   return (
     <div
       className={cn(
-        "bg-surface-200/90 backdrop-blur-md rounded-xl border p-5 transition-all duration-200",
+        "bg-slate-900/60 backdrop-blur-xl rounded-xl border p-5 transition-all duration-200 shadow-sm",
         glowStyles[glow],
         className
       )}
@@ -47,7 +47,7 @@ export const CardTitle: React.FC<React.HTMLAttributes<HTMLHeadingElement>> = ({
   children,
   ...props
 }) => (
-  <h3 className={cn("text-base font-semibold text-slate-100 flex items-center gap-2", className)} {...props}>
+  <h3 className={cn("text-base font-semibold text-slate-100 flex items-center gap-2 tracking-tight", className)} {...props}>
     {children}
   </h3>
 );
@@ -57,8 +57,7 @@ export const CardDescription: React.FC<React.HTMLAttributes<HTMLParagraphElement
   children,
   ...props
 }) => (
-  <p className={cn("text-xs text-slate-400 mt-1", className)} {...props}>
+  <p className={cn("text-xs text-slate-400 mt-1 leading-relaxed", className)} {...props}>
     {children}
   </p>
 );
-

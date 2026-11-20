@@ -4,22 +4,19 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Shield,
   ShieldCheck,
   ShieldAlert,
-  Lock,
   Globe,
   Zap,
   Radar,
   ArrowRight,
   TrendingUp,
   AlertTriangle,
-  FileText,
   RotateCw,
-  ExternalLink,
   Plus,
   Trash2,
   Download,
+  ExternalLink,
 } from "lucide-react";
 import {
   AreaChart,
@@ -33,7 +30,7 @@ import {
   Cell,
 } from "recharts";
 import { Button } from "@/components/ui/Button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { CompleteScanResult } from "@/types/scanner";
 import { formatTimeAgo, cn } from "@/lib/utils";
@@ -117,7 +114,7 @@ export default function DashboardPage() {
     }
 
     if (!quickScanAuth) {
-      setQuickScanError("You must confirm authorization before scanning.");
+      setQuickScanError("Please confirm authorization before scanning.");
       return;
     }
 
@@ -142,7 +139,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Compute live statistics from REAL records
+  // Compute live statistics
   const totalScans = scans.length;
   const uniqueDomains = new Set(scans.map((s) => s.domain)).size;
   const avgScore = totalScans > 0 ? Math.round(scans.reduce((acc, s) => acc + s.overallScore, 0) / totalScans) : 0;
@@ -151,7 +148,7 @@ export default function DashboardPage() {
   const totalMedium = scans.reduce((acc, s) => acc + (s.summary?.mediumFindings || 0), 0);
   const totalLow = scans.reduce((acc, s) => acc + (s.summary?.lowFindings || 0), 0);
 
-  // Prepare chart data from real records
+  // Prepare chart data
   const scoreTrendData = scans
     .slice()
     .reverse()
@@ -170,20 +167,15 @@ export default function DashboardPage() {
   ].filter((item) => item.value > 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 cyber-grid min-h-[90vh]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[90vh]">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-8 mb-8 border-b border-slate-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-8 border-b border-slate-800/80 gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              Security Operations Dashboard
-            </h1>
-            <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 font-mono text-xs">
-              LIVE SOC
-            </Badge>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real-time security telemetry, threat distribution, and external health posture.
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">
+            Security Dashboard
+          </h1>
+          <p className="text-sm text-slate-400 mt-1">
+            Overview of your external health checks, SSL certificates, and vulnerability posture.
           </p>
         </div>
 
@@ -193,9 +185,8 @@ export default function DashboardPage() {
               variant="primary"
               size="sm"
               leftIcon={<Plus className="w-4 h-4" />}
-              className="font-semibold"
             >
-              Launch Website Scan
+              New scan
             </Button>
           </Link>
         </div>
@@ -204,92 +195,150 @@ export default function DashboardPage() {
       {/* KPI Stats Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>TOTAL SCANS RUN</span>
-            <Radar className="w-4 h-4 text-emerald-400" />
+          <div className="text-xs font-medium text-slate-400 flex items-center justify-between">
+            <span>Total scans</span>
+            <Radar className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono">
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-slate-100 tracking-tight">
               {totalScans}
             </span>
-            <span className="text-xs text-slate-400">audits</span>
+            <span className="text-xs text-slate-500">audits completed</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Stored security assessments</p>
+          <p className="text-xs text-slate-500 mt-1">Saved security assessments</p>
         </Card>
 
         <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>AVERAGE SECURITY SCORE</span>
-            <TrendingUp className="w-4 h-4 text-cyan-400" />
+          <div className="text-xs font-medium text-slate-400 flex items-center justify-between">
+            <span>Average score</span>
+            <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-cyan-400 font-mono">
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className={cn(
+              "text-3xl font-bold tracking-tight",
+              avgScore >= 80 ? "text-emerald-400" : avgScore >= 60 ? "text-amber-400" : totalScans > 0 ? "text-red-400" : "text-slate-100"
+            )}>
               {totalScans > 0 ? avgScore : "—"}
             </span>
-            {totalScans > 0 && <span className="text-xs text-slate-400">/ 100</span>}
+            {totalScans > 0 && <span className="text-xs text-slate-500">/ 100</span>}
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            {totalScans > 0 ? `Across ${uniqueDomains} monitored targets` : "Awaiting first scan"}
+          <p className="text-xs text-slate-500 mt-1">
+            {totalScans > 0 ? `Across ${uniqueDomains} monitored domains` : "Awaiting first scan"}
           </p>
         </Card>
 
         <Card glow="none" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>DOMAINS MONITORED</span>
-            <Globe className="w-4 h-4 text-purple-400" />
+          <div className="text-xs font-medium text-slate-400 flex items-center justify-between">
+            <span>Monitored domains</span>
+            <Globe className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-100 font-mono">
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-slate-100 tracking-tight">
               {uniqueDomains}
             </span>
-            <span className="text-xs text-slate-400">distinct</span>
+            <span className="text-xs text-slate-500">targets</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Authorized targets</p>
+          <p className="text-xs text-slate-500 mt-1">Distinct domains audited</p>
         </Card>
 
-        <Card glow="red" className="p-5">
-          <div className="text-xs font-mono text-slate-400 flex items-center justify-between">
-            <span>CRITICAL FINDINGS</span>
-            <ShieldAlert className="w-4 h-4 text-red-400" />
+        <Card glow="none" className={cn("p-5", totalCritical > 0 && "border-red-500/30")}>
+          <div className="text-xs font-medium text-slate-400 flex items-center justify-between">
+            <span>Critical issues</span>
+            <ShieldAlert className={cn("w-4 h-4", totalCritical > 0 ? "text-red-400" : "text-slate-400")} />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-red-400 font-mono">
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className={cn("text-3xl font-bold tracking-tight", totalCritical > 0 ? "text-red-400" : "text-slate-100")}>
               {totalCritical}
             </span>
-            <span className="text-xs text-slate-400">critical</span>
+            <span className="text-xs text-slate-500">critical</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">
-            {totalHigh} high, {totalMedium} medium risks
+          <p className="text-xs text-slate-500 mt-1">
+            {totalHigh} high, {totalMedium} medium severity
           </p>
         </Card>
       </div>
 
+      {/* Quick Scan Launcher Card */}
+      <Card glow="none" className="p-6 mb-8">
+        <div className="flex items-center gap-2 mb-1.5">
+          <Zap className="w-4 h-4 text-emerald-400" />
+          <h2 className="text-sm font-semibold text-slate-100">
+            Run a domain check
+          </h2>
+        </div>
+        <p className="text-xs text-slate-400 mb-4">
+          Perform a non-invasive passive check on SSL certificates, security headers, and DNS records.
+        </p>
+
+        <form onSubmit={handleQuickScan} className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              placeholder="example.com (e.g. cloudflare.com, github.com)"
+              value={quickScanDomain}
+              onChange={(e) => setQuickScanDomain(e.target.value)}
+              className="flex-1 bg-slate-950 text-slate-100 placeholder:text-slate-500 rounded-lg px-4 py-2.5 text-sm border border-slate-700/80 focus:outline-none focus:border-emerald-500 transition-colors"
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              isLoading={isScanning}
+              className="shrink-0"
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Start scan
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2 pt-0.5">
+            <input
+              type="checkbox"
+              id="dash-auth"
+              checked={quickScanAuth}
+              onChange={(e) => setQuickScanAuth(e.target.checked)}
+              className="h-3.5 w-3.5 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
+            />
+            <label htmlFor="dash-auth" className="text-xs text-slate-400 cursor-pointer select-none">
+              I confirm I am authorized to conduct passive external assessments on this domain.
+            </label>
+          </div>
+
+          {quickScanError && (
+            <p className="text-xs text-red-400 flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              {quickScanError}
+            </p>
+          )}
+        </form>
+      </Card>
+
       {/* Charts & Visual Analytics Section */}
-      {totalScans > 0 ? (
+      {totalScans > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Security Score Progression Chart (Recharts) */}
+          {/* Security Score Progression Chart */}
           <Card glow="none" className="p-5 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-200 font-mono flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
-                Security Score Progression
+                Score progression
               </h3>
-              <span className="text-xs text-slate-400 font-mono">Latest Targets</span>
+              <span className="text-xs text-slate-500">Recent audits</span>
             </div>
             <div className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={scoreTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
                       <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
-                  <YAxis domain={[0, 100]} stroke="#64748b" fontSize={10} tickLine={false} />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
+                  <YAxis domain={[0, 100]} stroke="#64748b" fontSize={11} tickLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#0d1320",
+                      backgroundColor: "#0b0f19",
                       borderColor: "#1e293b",
                       borderRadius: "8px",
                       fontSize: "12px",
@@ -309,12 +358,12 @@ export default function DashboardPage() {
             </div>
           </Card>
 
-          {/* Issue Severity Distribution (PieChart) */}
+          {/* Issue Severity Distribution */}
           <Card glow="none" className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-slate-200 font-mono flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-amber-400" />
-                Severity Breakdown
+                Severity distribution
               </h3>
             </div>
             <div className="h-44 w-full flex items-center justify-center">
@@ -336,7 +385,7 @@ export default function DashboardPage() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "#0d1320",
+                        backgroundColor: "#0b0f19",
                         borderColor: "#1e293b",
                         borderRadius: "8px",
                         fontSize: "12px",
@@ -353,180 +402,117 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-slate-800 text-xs font-mono">
+            <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-slate-800 text-xs">
               <div className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                <span className="w-2 h-2 rounded-full bg-red-500" />
                 <span>Critical: {totalCritical}</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+                <span className="w-2 h-2 rounded-full bg-orange-500" />
                 <span>High: {totalHigh}</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
                 <span>Medium: {totalMedium}</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                <span className="w-2 h-2 rounded-full bg-blue-500" />
                 <span>Low: {totalLow}</span>
               </div>
             </div>
           </Card>
         </div>
-      ) : null}
+      )}
 
-      {/* Quick Scan Launcher Card */}
-      <Card glow="none" className="p-6 mb-8">
-        <h3 className="text-sm font-semibold text-slate-200 font-mono mb-2 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-emerald-400" />
-          Quick Scan Launcher
-        </h3>
-        <p className="text-xs text-slate-400 mb-4">
-          Execute a non-invasive passive security inspection on any authorized target domain.
-        </p>
-
-        <form onSubmit={handleQuickScan} className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              placeholder="e.g. github.com, cloudflare.com, yourcompany.com"
-              value={quickScanDomain}
-              onChange={(e) => setQuickScanDomain(e.target.value)}
-              className="flex-1 bg-navy-950 text-slate-100 placeholder:text-slate-500 rounded-lg px-4 py-2.5 text-xs font-mono border border-slate-700 focus:outline-none focus:border-emerald-500"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              isLoading={isScanning}
-              className="font-semibold shrink-0"
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-            >
-              Scan Target
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="dash-auth"
-              checked={quickScanAuth}
-              onChange={(e) => setQuickScanAuth(e.target.checked)}
-              className="h-3.5 w-3.5 rounded border-slate-700 bg-surface-200 text-emerald-500 focus:ring-emerald-400 cursor-pointer"
-            />
-            <label htmlFor="dash-auth" className="text-[11px] text-slate-400 cursor-pointer select-none">
-              I confirm I am authorized to conduct passive external assessments on this domain.
-            </label>
-          </div>
-
-          {quickScanError && (
-            <p className="text-xs text-red-400 flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {quickScanError}
-            </p>
-          )}
-        </form>
-      </Card>
-
-      {/* Recent Scans Table */}
+      {/* Recent Scans Section */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-            <RotateCw className="w-4 h-4 text-emerald-400" />
-            Recent Security Assessments ({scans.length})
+          <h2 className="text-base font-semibold text-slate-100 flex items-center gap-2">
+            <RotateCw className="w-4 h-4 text-slate-400" />
+            Recent assessments ({scans.length})
           </h2>
           {scans.length > 0 && (
             <Link
               href="/history"
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-mono flex items-center gap-1"
+              className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium"
             >
-              View Full History <ArrowRight className="w-3 h-3" />
+              View all history <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           )}
         </div>
 
         {scans.length === 0 ? (
-          <div className="p-12 rounded-xl bg-surface-200 border border-slate-800 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto">
-              <Radar className="w-7 h-7" />
+          <div className="p-12 rounded-xl bg-slate-900/40 border border-slate-800 text-center space-y-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-800/80 text-slate-400 flex items-center justify-center mx-auto">
+              <Radar className="w-6 h-6 text-slate-400" />
             </div>
-            <h3 className="text-base font-semibold text-slate-200">No Scans Performed Yet</h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              Your security assessment console is currently empty. Run your first non-invasive domain audit to generate security telemetry, grades, and compliance reports.
+            <h3 className="text-base font-medium text-slate-200">No security assessments yet</h3>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Enter a domain in the box above to run an external check on SSL, headers, and DNS security.
             </p>
-            <div className="pt-2">
-              <Link href="/scanner">
-                <Button variant="primary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
-                  Run First Website Audit
-                </Button>
-              </Link>
-            </div>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-800 bg-surface-200">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-800 bg-navy-950 font-mono text-slate-400">
-                  <th className="py-3 px-4">Domain</th>
-                  <th className="py-3 px-4">Score</th>
-                  <th className="py-3 px-4">Grade</th>
-                  <th className="py-3 px-4">Findings</th>
-                  <th className="py-3 px-4">Scanned</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {scans.map((scan) => (
-                  <tr
-                    key={scan.id}
-                    onClick={() => router.push(`/scan/${scan.id}?domain=${encodeURIComponent(scan.domain)}`)}
-                    className="hover:bg-surface-100/70 transition-colors cursor-pointer"
+          <div className="space-y-3">
+            {scans.slice(0, 5).map((scan) => (
+              <div
+                key={scan.id}
+                onClick={() => router.push(`/scan/${scan.id}?domain=${encodeURIComponent(scan.domain)}`)}
+                className="p-4 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-800/80 text-slate-300 font-mono text-sm font-bold border border-slate-700/60">
+                    {scan.grade}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-slate-100 group-hover:text-emerald-400 transition-colors">
+                        {scan.domain}
+                      </span>
+                      <span className="text-xs text-slate-500 font-normal">
+                        Score: {scan.overallScore}/100
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Scanned {formatTimeAgo(scan.scannedAt)} • {scan.durationMs}ms
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-end sm:self-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      generateSecurityReportPdf(scan);
+                    }}
+                    title="Export PDF"
+                    className="text-slate-400 hover:text-slate-200"
                   >
-                    <td className="py-3.5 px-4 font-mono font-semibold text-slate-100">
-                      {scan.domain}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
-                      {scan.overallScore} / 100
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <Badge grade={scan.grade} dot>
-                        {scan.grade}
-                      </Badge>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-slate-300">
-                      <span className="text-red-400 font-semibold">{scan.summary.criticalFindings}C</span>{" "}
-                      <span className="text-orange-400 font-semibold">{scan.summary.highFindings}H</span>{" "}
-                      <span className="text-amber-400 font-semibold">{scan.summary.mediumFindings}M</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-400 font-mono">
-                      {formatTimeAgo(scan.scannedAt)}
-                    </td>
-                    <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => generateSecurityReportPdf(scan)}
-                          title="Download PDF Report"
-                          className="p-1.5 rounded bg-surface-100 hover:bg-surface-50 border border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 transition-colors"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteScan(scan.id, e)}
-                          title="Delete Record"
-                          className="p-1.5 rounded bg-surface-100 hover:bg-surface-50 border border-slate-800 hover:border-red-500/40 text-slate-400 hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    <Download className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleDeleteScan(scan.id, e)}
+                    title="Delete record"
+                    className="text-slate-400 hover:text-red-400"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    rightIcon={<ArrowRight className="w-3 h-3" />}
+                  >
+                    Details
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
     </div>
   );
 }
-

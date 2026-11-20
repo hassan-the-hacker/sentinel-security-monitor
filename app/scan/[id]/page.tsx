@@ -133,7 +133,7 @@ function ScanResultContent() {
 
   if (loading) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center cyber-grid">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center">
         <div className="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mb-4 animate-pulse">
           <Shield className="w-8 h-8" />
         </div>
@@ -147,7 +147,7 @@ function ScanResultContent() {
 
   if (error || !scan) {
     return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center cyber-grid px-4">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center px-4">
         <div className="p-6 rounded-2xl bg-surface-200 border border-red-500/40 max-w-md text-center space-y-4">
           <div className="w-12 h-12 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto">
             <AlertTriangle className="w-6 h-6" />
@@ -185,7 +185,7 @@ function ScanResultContent() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 cyber-grid min-h-[90vh]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[90vh]">
       {/* Back button & Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-6 border-b border-slate-800 gap-4">
         <div className="flex items-center gap-3">

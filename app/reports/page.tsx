@@ -77,62 +77,40 @@ export default function ReportsPage() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 cyber-grid min-h-[90vh]">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[90vh]">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-8 mb-8 border-b border-slate-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-8 border-b border-slate-800/80 gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono tracking-tight flex items-center gap-2.5">
-            <FileText className="w-7 h-7 text-emerald-400" />
-            Executive Security Reports Hub
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight flex items-center gap-2.5">
+            <FileText className="w-6 h-6 text-emerald-400" />
+            Security reports
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Export publication-ready compliance audits and technical security posture documentation in PDF format.
+          <p className="text-sm text-slate-400 mt-1">
+            Export comprehensive security assessment audits and technical findings in PDF format.
           </p>
         </div>
 
         <Link href="/scanner">
           <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-4 h-4" />}>
-            New Security Audit
+            New scan
           </Button>
         </Link>
       </div>
 
-      {/* Overview Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-surface-100 to-surface-200 border border-slate-800 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 font-bold">
-            <ShieldCheck className="w-4 h-4" />
-            <span>EXECUTIVE AUDIT ENGINE (PDF)</span>
-          </div>
-          <h3 className="text-lg font-bold text-slate-100">
-            Confidential Technical Reports Ready for Leadership & Audits
-          </h3>
-          <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
-            Reports aggregate cryptographic validation telemetry, full HTTP security headers matrices, SPF/DMARC anti-spoofing policies, and detailed remediation instructions with zero external paid APIs.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-          <span className="text-xs font-mono px-3 py-2 rounded-lg bg-navy-950 border border-slate-800 text-slate-300">
-            Available Audits: <strong className="text-emerald-400">{scans.length}</strong>
-          </span>
-        </div>
-      </div>
-
       {/* Reports Grid */}
       {scans.length === 0 ? (
-        <div className="p-12 rounded-xl bg-surface-200 border border-slate-800 text-center space-y-4">
-          <div className="w-12 h-12 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
-            <FileText className="w-6 h-6" />
+        <div className="p-12 rounded-xl bg-slate-900/40 border border-slate-800 text-center space-y-3">
+          <div className="w-12 h-12 rounded-xl bg-slate-800/80 text-slate-400 flex items-center justify-center mx-auto">
+            <FileText className="w-6 h-6 text-slate-400" />
           </div>
-          <h3 className="text-base font-semibold text-slate-200">No Audits Available for Export</h3>
+          <h3 className="text-base font-medium text-slate-200">No reports available</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-            Run a passive security assessment on your website or API domain to generate an executive PDF report.
+            Run a security audit on your website or domain to generate and export an executive PDF report.
           </p>
           <div className="pt-2">
             <Link href="/scanner">
               <Button variant="primary" size="sm">
-                Launch Security Scan
+                Run security scan
               </Button>
             </Link>
           </div>

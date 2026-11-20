@@ -72,52 +72,46 @@ export default function LandingPage() {
   const quickScanPresets = ["github.com", "cloudflare.com", "supabase.com", "stripe.com"];
 
   return (
-    <div className="relative min-h-screen cyber-grid pb-20">
-      {/* Background radial gradients */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-emerald-500/10 blur-[130px] -z-10 pointer-events-none" />
-      <div className="absolute top-1/3 left-1/4 w-[600px] h-[400px] bg-cyan-500/10 blur-[150px] -z-10 pointer-events-none" />
-
+    <div className="relative min-h-screen pb-20">
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 text-center">
         {/* Banner Pill */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-100 border border-emerald-500/30 text-emerald-400 text-xs font-mono mb-8 shadow-[0_0_15px_-3px_rgba(16,185,129,0.3)] animate-pulse-slow">
-          <Shield className="w-3.5 h-3.5 text-emerald-400" />
-          <span>PRODUCTION-GRADE CYBERSECURITY RECONNAISSANCE</span>
-          <span className="text-slate-500">|</span>
-          <span className="text-slate-300">PASSIVE AUDIT ENGINE</span>
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-300 text-xs mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span>Non-invasive website security auditor</span>
         </div>
 
         {/* Main Headline */}
-        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-100 max-w-4xl mx-auto leading-[1.15]">
-          Know Your Website&apos;s Security{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-500">
-            Before Attackers Do.
+        <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-slate-100 max-w-4xl mx-auto leading-[1.15]">
+          Know your website&apos;s security{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+            posture in seconds.
           </span>
         </h1>
 
         {/* Subtitle */}
         <p className="mt-6 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          Comprehensive, zero-cost cybersecurity health monitoring. Inspect SSL/TLS cipher suites, HTTP security headers, SPF/DMARC records, and HTTPS redirection in seconds.
+          Free, non-destructive security auditing. Inspect SSL/TLS configurations, HTTP security headers, SPF/DMARC anti-spoofing policies, and public exposure.
         </p>
 
         {/* Quick Scan Input Box */}
         <div className="mt-10 max-w-2xl mx-auto">
           <form
             onSubmit={handleStartScan}
-            className="p-3 rounded-2xl bg-surface-200/90 border border-slate-700/80 shadow-2xl backdrop-blur-xl transition-all focus-within:border-emerald-500/60 focus-within:shadow-[0_0_30px_-5px_rgba(16,185,129,0.25)]"
+            className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 shadow-xl backdrop-blur-xl transition-all focus-within:border-emerald-500/50"
           >
             <div className="flex flex-col sm:flex-row gap-3 items-center">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                 <input
                   type="text"
-                  placeholder="Enter domain to audit (e.g. yourcompany.com)"
+                  placeholder="Enter domain to audit (e.g. stripe.com, github.com)"
                   value={targetDomain}
                   onChange={(e) => {
                     setTargetDomain(e.target.value);
                     if (validationError) setValidationError("");
                   }}
-                  className="w-full bg-navy-950/80 text-slate-100 placeholder:text-slate-500 rounded-xl pl-12 pr-4 py-3.5 text-sm font-mono focus:outline-none border border-slate-800"
+                  className="w-full bg-slate-950 text-slate-100 placeholder:text-slate-500 rounded-xl pl-12 pr-4 py-3.5 text-sm focus:outline-none border border-slate-800/80"
                 />
               </div>
               <Button

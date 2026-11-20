@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, KeyRound, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [demoNotice, setDemoNotice] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +26,7 @@ export default function LoginPage() {
       const supabase = createClient();
       if (!supabase) {
         setError(
-          "Supabase database connection is not configured. Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in your environment variables."
+          "Database connection is not configured. Please ensure Supabase credentials are set in your environment."
         );
         setLoading(false);
         return;
@@ -39,7 +38,7 @@ export default function LoginPage() {
       });
 
       if (authError) {
-        setError(authError.message || "Invalid login credentials. Please check your email and password.");
+        setError(authError.message || "Invalid email or password.");
         setLoading(false);
         return;
       }
@@ -50,7 +49,6 @@ export default function LoginPage() {
         return;
       }
 
-      // Store authenticated user session
       localStorage.setItem(
         "sentinel_user",
         JSON.stringify({
@@ -69,76 +67,30 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = () => {
-    setEmail("analyst@sentinel.sec");
-    setPassword("SentinelSec#2025");
-    setDemoNotice(true);
-    // Instant login for evaluation convenience
-    localStorage.setItem(
-      "sentinel_user",
-      JSON.stringify({
-        email: "analyst@sentinel.sec",
-        role: "SecOps Lead",
-        id: "usr_demo_recruiter_preview",
-      })
-    );
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 600);
-  };
-
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 cyber-grid">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4 group">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 group-hover:border-emerald-500/40 transition-colors">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <span className="font-bold text-xl tracking-wider text-slate-100">SENTINEL</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-slate-100">Sign In to Console</h1>
-          <p className="text-xs text-slate-400 mt-1.5">
-            Access real-time security posture telemetry and scan history
-          </p>
-        </div>
-
-        {/* Demo Fast-Track Card */}
-        <div className="mb-6 p-3.5 rounded-xl bg-surface-100 border border-emerald-500/30 text-left">
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 font-mono">
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>RECRUITER & AUDITOR PREVIEW</span>
-            </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">
-              1-CLICK
+            <span className="font-semibold text-lg text-slate-100 group-hover:text-emerald-400 transition-colors tracking-tight">
+              Sentinel
             </span>
-          </div>
-          <p className="text-xs text-slate-400 mb-2.5">
-            Quickly authenticate as a Lead Security Analyst to explore the full dashboard and scanning engine.
+          </Link>
+          <h1 className="text-2xl font-bold text-slate-100 tracking-tight">Sign in</h1>
+          <p className="text-sm text-slate-400 mt-1.5">
+            Enter your credentials to access your security dashboard.
           </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleDemoLogin}
-            className="w-full text-xs font-mono justify-center"
-          >
-            Launch Instant SecOps Session
-          </Button>
-          {demoNotice && (
-            <p className="text-[11px] text-emerald-400 mt-2 flex items-center gap-1 font-mono">
-              <CheckCircle2 className="w-3 h-3" /> Initializing session... redirecting
-            </p>
-          )}
         </div>
 
         {/* Form Card */}
-        <Card glow="none" className="p-6">
+        <Card glow="none" className="p-7 border-slate-800 bg-slate-900/60 backdrop-blur-xl">
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -146,12 +98,12 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Work Email Address
+                Email address
               </label>
               <Input
                 type="email"
                 required
-                placeholder="analyst@organization.com"
+                placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 leftIcon={<Mail className="w-4 h-4" />}
@@ -165,9 +117,9 @@ export default function LoginPage() {
                 </label>
                 <Link
                   href="/register"
-                  className="text-xs text-emerald-400 hover:text-emerald-300"
+                  className="text-xs text-slate-400 hover:text-emerald-400 transition-colors"
                 >
-                  Forgot?
+                  Forgot password?
                 </Link>
               </div>
               <Input
@@ -181,7 +133,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="p-1 text-slate-400 hover:text-emerald-400 focus:outline-none transition-colors"
+                    className="p-1 text-slate-400 hover:text-slate-200 focus:outline-none transition-colors"
                     title={showPassword ? "Hide password" : "Show password"}
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
@@ -196,20 +148,16 @@ export default function LoginPage() {
               variant="primary"
               size="md"
               isLoading={loading}
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-              className="w-full mt-2 font-semibold"
+              className="w-full mt-2 font-medium"
             >
-              Sign In to Console
+              Sign in
             </Button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
+          <div className="mt-6 pt-5 border-t border-slate-800/80 text-center text-xs text-slate-400">
             Don&apos;t have an account yet?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-emerald-400 hover:text-emerald-300 ml-1 underline underline-offset-4"
-            >
-              Create Account
+            <Link href="/register" className="text-emerald-400 hover:text-emerald-300 font-medium">
+              Create an account
             </Link>
           </div>
         </Card>
@@ -217,4 +165,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
