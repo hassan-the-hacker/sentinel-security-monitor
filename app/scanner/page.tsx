@@ -285,10 +285,10 @@ function ScannerContent() {
             <div
               key={st.num}
               className={`p-3.5 rounded-xl border transition-all ${isComplete
-                  ? "bg-slate-900 border-emerald-500/30 text-slate-200"
-                  : isCurrent
-                    ? "bg-slate-900 border-slate-700 text-slate-100"
-                    : "bg-slate-950/40 border-slate-800/80 text-slate-500"
+                ? "bg-slate-900 border-emerald-500/30 text-slate-200"
+                : isCurrent
+                  ? "bg-slate-900 border-slate-700 text-slate-100"
+                  : "bg-slate-950/40 border-slate-800/80 text-slate-500"
                 }`}
             >
               <div className="flex items-center justify-between mb-1.5 text-xs">
